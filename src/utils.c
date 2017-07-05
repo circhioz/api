@@ -31,7 +31,7 @@
  */
 inline void *malloc_or_die(size_t size) {
     void *ptr = malloc(size);
-    if (ptr == NULL && size == 0)
+    if (ptr == NULL)
         exit(-1);
     return ptr;
 }
@@ -41,7 +41,7 @@ inline void *malloc_or_die(size_t size) {
  */
 inline void *calloc_or_die(size_t num, size_t size) {
     void *ptr = calloc(num, size);
-    if (ptr == NULL && size == 0 && num == 0)
+    if (ptr == NULL)
         exit(-1);
     return ptr;
 }
