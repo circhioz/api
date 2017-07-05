@@ -1,5 +1,5 @@
 # SimpleFS - a simple filesystem
-This is my proposed solution for the final assignment of the API (Alrgoritmi e Principi dell'Informatica) course.
+This is my proposed solution for the final assignment of the API (Algoritmi e Principi dell'Informatica) course.
 
 ## Brief
 The aim of the project is to implement a simple hierarchical file system stored uniquely in volatile memory.
