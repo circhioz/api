@@ -47,6 +47,16 @@ inline void *calloc_or_die(size_t num, size_t size) {
 }
 
 /**
+ * realloc() wrapper: crash on memory allocation failure!
+ */
+inline void *realloc_or_die(void *block, size_t size) {
+    void *ptr = realloc(block, size);
+    if (ptr == NULL)
+        exit(-1);
+    return ptr;
+}
+
+/**
  * strdup() equivalent
  */
 char *my_strdup(char *str) {
@@ -63,20 +73,13 @@ char *my_strdup(char *str) {
 char *my_getline(void) {
     char *line = malloc_or_die(100 * sizeof(char)), *linep = line;
     size_t lenmax = 100, len = lenmax;
-    int c;
-    if (line == NULL)
-        return NULL;
     for (;;) {
-        c = fgetc(stdin);
+        int c = fgetc(stdin);
         if (c == EOF)
             break;
         if (--len == 0) {
             len = lenmax;
-            char *linen = realloc(linep, lenmax *= 2);
-            if (linen == NULL) {
-                free(linep);
-                return NULL;
-            }
+            char *linen = realloc_or_die(linep, lenmax *= 2);
             line = linen + (line - linep);
             linep = linen;
         }
