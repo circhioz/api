@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include "utils.h"
 #include "strlist.h"
+#include "hashtable.h"
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -41,11 +42,16 @@ enum {
     File,
 };
 
+typedef union {
+    hashtable_t         *dirhash;
+    char                *content;
+} node_data_u;
+
 /* FS tree node */
 typedef struct _node {
     char                *name;
     struct _node        *parent;
-    void                *data;
+    node_data_u         payload;
     uint8_t             type;
     uint16_t            depth;
 } node_t;

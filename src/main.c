@@ -232,7 +232,7 @@ int main() {
     }
 
     free(line);
-    free(root->data);
+    hashtable_destroy(root->payload.dirhash);
     free(root);
 
     return 0;

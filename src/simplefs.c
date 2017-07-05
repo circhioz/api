@@ -21,7 +21,6 @@
 #include <string.h>
 
 #include "simplefs.h"
-#include "hashtable.h"
 
 /****************************************************************************
  * Private Functions
@@ -30,8 +29,8 @@
  * Free file structure and delete directory entry
  */
 void fs_free_file(node_t *file) {
-    free(file->data);
-    hashtable_remove(file->parent->data, file->name);
+    free(file->payload.content);
+    hashtable_remove(file->parent->payload.dirhash, file->name);
     free(file->name);
     free(file);
 }
@@ -40,9 +39,9 @@ void fs_free_file(node_t *file) {
  * Free directory structure and delete parent directory entry
  */
 int fs_free_dir(node_t *dir) {
-    if (hashtable_get_size(dir->data) == 0) {
-        hashtable_destroy(dir->data);
-        hashtable_remove(dir->parent->data, dir->name);
+    if (hashtable_get_size(dir->payload.dirhash) == 0) {
+        hashtable_destroy(dir->payload.dirhash);
+        hashtable_remove(dir->parent->payload.dirhash, dir->name);
         free(dir->name);
         free(dir);
         return 0;
@@ -86,7 +85,7 @@ char *fs_get_file_content(node_t *node) {
         /* This isn't a file */
         return NULL;
     }
-    return (char *) (node->data);
+    return node->payload.content;
 }
 
 /**
@@ -99,9 +98,9 @@ int fs_set_file_content(node_t *node, char *new_content) {
         return -1;
     }
     /* Free the old content */
-    free(node->data);
+    free(node->payload.content);
     /* Duplicate the new content */
-    node->data = my_strdup(new_content);
+    node->payload.content = my_strdup(new_content);
     return 0;
 }
 
@@ -109,7 +108,7 @@ int fs_set_file_content(node_t *node, char *new_content) {
  * Get a node by name from a specific directory, return NULL if not found
  */
 node_t *fs_find_in_dir(node_t *parent, char *key) {
-    return (node_t *) hashtable_get(parent->data, key);
+    return (node_t *) hashtable_get(parent->payload.dirhash, key);
 }
 
 /**
@@ -117,8 +116,8 @@ node_t *fs_find_in_dir(node_t *parent, char *key) {
  * Return 0 if succeeded, -1 if failed
  */
 int fs_create(node_t *parent, char *key, uint8_t type) {
-    if (hashtable_get(parent->data, key) != NULL /* Node already exists */
-        || hashtable_get_size(parent->data) >= MAX_NODES /* Dir is full */
+    if (hashtable_get(parent->payload.dirhash, key) != NULL /* Node already exists */
+        || hashtable_get_size(parent->payload.dirhash) >= MAX_NODES /* Dir is full */
         || strlen(key) > MAX_NAMELENGHT /* Name is too long */
         || parent->depth >= MAX_DEPTH) /* Parent node is at max depth */
         return -1;
@@ -129,12 +128,12 @@ int fs_create(node_t *parent, char *key, uint8_t type) {
     child->type = type;
     if (type == Dir) {
         // Empty DirHash
-        child->data = hashtable_create();
+        child->payload.dirhash = hashtable_create();
     } else {
         // Empty content
-        child->data = calloc_or_die(1, sizeof(char));
+        child->payload.content = calloc_or_die(1, sizeof(char));
     }
-    hashtable_set(parent->data, child->name, child);
+    hashtable_set(parent->payload.dirhash, child->name, child);
     return 0;
 }
 
@@ -156,13 +155,13 @@ int fs_delete(node_t *node) {
  */
 void fs_delete_r(node_t *node) {
     if (node->type == Dir) {
-        if (hashtable_get_size(node->data) > 0) {
+        if (hashtable_get_size(node->payload.dirhash) > 0) {
             int state = 0;
-            node_t *child = hashtable_iterate(node->data, &state);
+            node_t *child = hashtable_iterate(node->payload.dirhash, &state);
             while (child) {
                 fs_delete_r(child);
                 state = 0;
-                child = hashtable_iterate(node->data, &state);
+                child = hashtable_iterate(node->payload.dirhash, &state);
             }
         }
         fs_free_dir(node);
@@ -181,7 +180,7 @@ node_t *fs_new_root(void) {
     root->depth = 1;
     root->parent = NULL;
     root->type = Dir;
-    root->data = hashtable_create();
+    root->payload.dirhash = hashtable_create();
     return root;
 }
 
@@ -190,7 +189,7 @@ node_t *fs_new_root(void) {
  */
 void fs_find_r(node_t *node, char *name, strlist_t **list) {
     int state = 0; // Iterator state
-    node_t *child = hashtable_iterate(node->data, &state);
+    node_t *child = hashtable_iterate(node->payload.dirhash, &state);
 
     while (child) {
         if (strcmp(child->name, name) == 0) {
@@ -204,6 +203,6 @@ void fs_find_r(node_t *node, char *name, strlist_t **list) {
             fs_find_r(child, name, list);
         }
 
-        child = hashtable_iterate(node->data, &state);
+        child = hashtable_iterate(node->payload.dirhash, &state);
     }
 }
