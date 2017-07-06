@@ -37,28 +37,33 @@
 /**
  * Find resource by its path string
  */
-node_t *get_node_by_path(node_t *node, char *path) {
-    char *token;
-
+node_t *enter_path(node_t *node, char *path, char **new_name) {
+    node_t *tmp = NULL;
+    char *cur_token = strtok(path, " /\n\r");
+    char *next_token = strtok(NULL, "/\n\r");
+    if (cur_token == NULL)
+        return NULL; /* Empty path */
     /* Try to enter the path token by token */
-    token = strtok(path, " /\n\r");
-    if (token == NULL) {
-        /* Empty path */
-        return NULL;
-    }
-
-    while (token) {
-        /* Find token in current dir */
-        node = fs_find_in_dir(node, token);
-        if (node) {
-            /* Child dir has been found, get next token */
-            token = strtok(NULL, "/\n\r");
+    while (cur_token) {
+        /* Enter only if current node is a dir */
+        if (fs_get_type(node) == Dir) {
+            if ((tmp = fs_find_in_dir(node, cur_token))) {
+                /* Resource found, get next token */
+                node = tmp;
+                cur_token = next_token;
+                next_token = strtok(NULL, "/\n\r");
+            } else {
+                /* Resource not found */
+                if (new_name != NULL && next_token == NULL) {
+                    *new_name = cur_token;
+                    break;
+                }
+                return NULL;
+            }
         } else {
-            /* Wrong path */
             return NULL;
         }
     }
-
     return node;
 }
 
@@ -68,32 +73,12 @@ node_t *get_node_by_path(node_t *node, char *path) {
  * Create a new empty file/directory
  */
 int do_create(node_t *node, uint8_t type) {
-    char *token;
-    node_t *curr = NULL;
+    char *name = NULL;
+    node = enter_path(node, NULL, &name);
+    if (name != NULL)
+        return fs_create(node, name, type);
 
-    /* Try to enter the path token by token */
-    token = strtok(NULL, " /\n\r");
-    while (token) {
-        /* Find token in current dir */
-        if (fs_get_type(node) == Dir) {
-            curr = fs_find_in_dir(node, token);
-        } else {
-            return -1;
-        }
-        if (curr) {
-            /* Child dir has been found, get next token */
-            node = curr;
-            token = strtok(NULL, "/\n\r");
-        } else {
-            if (strtok(NULL, "/\n\r")) {
-                /* This isn't the last token */
-                return -1;
-            }
-            /* Last token is the name of the new file/dir */
-            return fs_create(node, token, type);
-        }
-    }
-    /* Empty path or other error */
+    /* File exists or invalid path */
     return -1;
 }
 
@@ -102,7 +87,7 @@ int do_create(node_t *node, uint8_t type) {
  * Read file content
  */
 char *do_read(node_t *node) {
-    node = get_node_by_path(node, NULL);
+    node = enter_path(node, NULL, NULL);
     if (node == NULL)
         return NULL;
 
@@ -119,7 +104,7 @@ int do_write(node_t *node) {
     path = strtok(NULL, " \n\r"); /* First token is path */
     new_content = strtok(NULL, "\"\n\r"); /* Second token is content */
 
-    node = get_node_by_path(node, path);
+    node = enter_path(node, path, NULL);
     if (node == NULL || new_content == NULL)
         return -1;
 
@@ -135,7 +120,7 @@ int do_write(node_t *node) {
  * Delete a resource (also recursively)
  */
 int do_delete(node_t *node, int recursive) {
-    node = get_node_by_path(node, NULL);
+    node = enter_path(node, NULL, NULL);
     if (node == NULL)
         return -1;
 
