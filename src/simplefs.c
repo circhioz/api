@@ -29,6 +29,8 @@
  * Free file structure and delete directory entry
  */
 void fs_free_file(node_t *file) {
+    /* Free: file content, name, node struct
+     * Remove: entry in parent hashtable */
     free(file->payload.content);
     hashtable_remove(file->parent->payload.dirhash, file->name);
     free(file->name);
@@ -39,7 +41,10 @@ void fs_free_file(node_t *file) {
  * Free directory structure and delete parent directory entry
  */
 int fs_free_dir(node_t *dir) {
+    /* Check if dir is empty */
     if (hashtable_get_size(dir->payload.dirhash) == 0) {
+        /* Free: hashtable struct, name, node struct
+         * Remove: entry in parent hashtable */
         hashtable_destroy(dir->payload.dirhash);
         hashtable_remove(dir->parent->payload.dirhash, dir->name);
         free(dir->name);
@@ -57,6 +62,8 @@ int fs_free_dir(node_t *dir) {
  */
 char *fs_build_path_str(node_t *node) {
     char *old, *path;
+    /* Climb down from the desired node to the root,
+     * adding every node name to the beginning of the path string */
     path = calloc_or_die(1, sizeof(char));
     do {
         old = path;
@@ -108,7 +115,8 @@ int fs_set_file_content(node_t *node, char *new_content) {
  * Get a node by name from a specific directory, return NULL if not found
  */
 node_t *fs_find_in_dir(node_t *parent, char *key) {
-    return (node_t *) hashtable_get(parent->payload.dirhash, key);
+    /* Get node from dir hashtable */
+    return hashtable_get(parent->payload.dirhash, key);
 }
 
 /**
@@ -121,6 +129,7 @@ int fs_create(node_t *parent, char *key, uint8_t type) {
         || strlen(key) > MAX_NAMELENGHT /* Name is too long */
         || parent->depth >= MAX_DEPTH) /* Parent node is at max depth */
         return -1;
+    /* Create a new empty resource */
     node_t *child = malloc_or_die(sizeof(node_t));
     child->name = my_strdup(key);
     child->depth = parent->depth + 1;
@@ -133,6 +142,7 @@ int fs_create(node_t *parent, char *key, uint8_t type) {
         // Empty content
         child->payload.content = calloc_or_die(1, sizeof(char));
     }
+    /* Add resource to its parent's hashtable */
     hashtable_set(parent->payload.dirhash, child->name, child);
     return 0;
 }
@@ -155,11 +165,16 @@ int fs_delete(node_t *node) {
  */
 void fs_delete_r(node_t *node) {
     if (node->type == Dir) {
+        /* If dir is not empty, delete every child */
         if (hashtable_get_size(node->payload.dirhash) > 0) {
+            /* Iterate through the table */
             int state = 0;
             node_t *child = hashtable_iterate(node->payload.dirhash, &state);
             while (child) {
                 fs_delete_r(child);
+                /* We need to reset the iterator state after
+                 * every call to fs_delete_r, as it can change
+                 * the order of the elements in the table*/
                 state = 0;
                 child = hashtable_iterate(node->payload.dirhash, &state);
             }
@@ -190,7 +205,6 @@ node_t *fs_new_root(void) {
 node_t **fs_find_r(node_t *node, char *name, size_t *num, node_t **array) {
     int state = 0; // Iterator state
     node_t *child = hashtable_iterate(node->payload.dirhash, &state);
-
     while (child) {
         if (strcmp(child->name, name) == 0) {
             /* We found a node with the requested name */
@@ -199,12 +213,10 @@ node_t **fs_find_r(node_t *node, char *name, size_t *num, node_t **array) {
                                     : realloc_or_die(array, (*num) * sizeof(node_t *));
             array[*num - 1] = child;
         }
-
         /* Check subdirs */
         if (child->type == Dir) {
             array = fs_find_r(child, name, num, array);
         }
-
         child = hashtable_iterate(node->payload.dirhash, &state);
     }
     return array;
