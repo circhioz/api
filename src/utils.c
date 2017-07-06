@@ -74,15 +74,19 @@ char *my_getline(void) {
     char *line = malloc_or_die(100 * sizeof(char)), *linep = line;
     size_t lenmax = 100, len = lenmax;
     for (;;) {
+        /* Get char from stdin */
         int c = fgetc(stdin);
+        /* Stop at EOF */
         if (c == EOF)
             break;
+        /* If buffer is full, double its size */
         if (--len == 0) {
             len = lenmax;
             char *linen = realloc_or_die(linep, lenmax *= 2);
             line = linen + (line - linep);
             linep = linen;
         }
+        /* Add char to buffer but stop at newline */
         if ((*line++ = c) == '\n')
             break;
     }
