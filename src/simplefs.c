@@ -60,7 +60,7 @@ int fs_free_dir(node_t *dir) {
 /**
  * Create and return a new string with node full path
  */
-char *fs_build_path_str(node_t *node) {
+char *fs_get_path(node_t *node) {
     char *old, *path;
     /* Climb down from the desired node to the root,
      * adding every node name to the beginning of the path string */

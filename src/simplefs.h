@@ -58,7 +58,7 @@ typedef struct _node {
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
-char *fs_build_path_str(node_t *);
+char *fs_get_path(node_t *);
 char *fs_get_file_content(node_t *);
 uint8_t fs_get_type(node_t *);
 int fs_set_file_content(node_t *, char *);

@@ -158,7 +158,7 @@ void do_find(node_t *root) {
     if(nres > 0) {
         char **paths = malloc_or_die(nres * sizeof(char *));
         for (int i = 0; i < nres; i++) {
-            paths[i] = fs_build_path_str(res[i]);
+            paths[i] = fs_get_path(res[i]);
         }
         free(res);
         qsort(paths, nres, sizeof(char *), compare_str);
