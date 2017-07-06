@@ -49,6 +49,9 @@ int fs_free_dir(node_t *dir) {
     return -1;
 }
 
+/****************************************************************************
+ * Public Functions
+ ****************************************************************************/
 /**
  * Create and return a new string with node full path
  */
@@ -67,9 +70,6 @@ char *fs_build_path_str(node_t *node) {
     return path;
 }
 
-/****************************************************************************
- * Public Functions
- ****************************************************************************/
 /**
  * Get node type, Dir or File
  */
@@ -187,22 +187,25 @@ node_t *fs_new_root(void) {
 /**
  * Find resources recursively given a starting directory
  */
-void fs_find_r(node_t *node, char *name, strlist_t **list) {
+node_t **fs_find_r(node_t *node, char *name, size_t *num, node_t **array) {
     int state = 0; // Iterator state
     node_t *child = hashtable_iterate(node->payload.dirhash, &state);
 
     while (child) {
         if (strcmp(child->name, name) == 0) {
             /* We found a node with the requested name */
-            char *path = fs_build_path_str(child);
-            *list = strlist_head_insert(*list, path);
+            *num = *num + 1;
+            array = (array == NULL) ? malloc_or_die(sizeof(node_t *))
+                                    : realloc_or_die(array, (*num) * sizeof(node_t *));
+            array[*num - 1] = child;
         }
 
         /* Check subdirs */
         if (child->type == Dir) {
-            fs_find_r(child, name, list);
+            array = fs_find_r(child, name, num, array);
         }
 
         child = hashtable_iterate(node->payload.dirhash, &state);
     }
+    return array;
 }
