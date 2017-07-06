@@ -89,3 +89,12 @@ char *my_getline(void) {
     *line = '\0';
     return linep;
 }
+
+
+/**
+ * Compare two strings using strcmp and return the result
+ * Used as compare function for qsort
+ */
+int compare_str(const void* a, const void* b) {
+    return strcmp(*(const char**)a, *(const char**)b);
+}

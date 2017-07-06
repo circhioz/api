@@ -153,15 +153,20 @@ int do_delete(node_t *node, int recursive) {
  */
 void do_find(node_t *root) {
     char *token = strtok(NULL, " \n\r");
-    strlist_t *res = NULL;
-    fs_find_r(root, token, &res);
-    if (res) {
-        strlist_t *tmp = res = strlist_sort(res);
-        while (tmp) {
-            printf("ok %s\n", tmp->str);
-            tmp = tmp->next;
+    size_t nres = 0;
+    node_t **res = fs_find_r(root, token, &nres, NULL);
+    if(nres > 0) {
+        char **paths = malloc_or_die(nres * sizeof(char *));
+        for (int i = 0; i < nres; i++) {
+            paths[i] = fs_build_path_str(res[i]);
         }
-        strlist_destroy(res);
+        free(res);
+        qsort(paths, nres, sizeof(char *), compare_str);
+        for(int i = 0; i < nres; i++) {
+            printf("ok %s\n", paths[i]);
+            free(paths[i]);
+        }
+        free(paths);
     } else {
         printf("no\n");
     }
@@ -233,6 +238,7 @@ int main() {
 
     free(line);
     hashtable_destroy(root->payload.dirhash);
+    free(root->name);
     free(root);
 
     return 0;
