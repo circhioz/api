@@ -162,7 +162,7 @@ node_t *fs_new_root(void) {
     node_t *root;
     root = malloc_or_die(sizeof(node_t));
     root->name = calloc_or_die(1, sizeof(char));
-    root->depth = 1;
+    root->depth = 0;
     root->parent = NULL;
     root->type = Dir;
     root->payload.dirhash = hashtable_create();
