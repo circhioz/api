@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include "simplefs.h"
 
 /****************************************************************************
@@ -133,18 +134,12 @@ void do_write(node_t *node) {
  * delete_r <path>
  * Delete a resource (also recursively)
  */
-void do_delete(node_t *node, int recursive) {
-    int res = -1;
+void do_delete(node_t *node, bool recursive) {
     node = enter_path(node, NULL, NULL);
     if (node != NULL) {
-        if (recursive) {
-            fs_delete_r(node);
-            res = 0;
-        } else {
-            res = fs_delete(node);
-        }
+        printf(fs_delete(node, recursive) == 0 ? RES_OK : RES_FAIL);
     }
-    printf(res == 0 ? RES_OK : RES_FAIL);
+    printf(RES_FAIL);
 }
 
 /**
@@ -176,11 +171,10 @@ void do_find(node_t *root) {
  * Public Functions
  ****************************************************************************/
 int main() {
-    char *line = NULL;
     /* Root node init */
     node_t *root = fs_new_root();
     /* Command parser */
-    line = my_getline();
+    char *line = my_getline();
     while (*line != '\0') {
         char *token = strtok(line, TOK_SPACE);
         if (token) {
@@ -193,9 +187,9 @@ int main() {
             } else if (strcmp(token, "write") == 0) {
                 do_write(root);
             } else if (strcmp(token, "delete") == 0) {
-                do_delete(root, 0);
+                do_delete(root, false);
             } else if (strcmp(token, "delete_r") == 0) {
-                do_delete(root, 1);
+                do_delete(root, true);
             } else if (strcmp(token, "find") == 0) {
                 do_find(root);
             } else if (strcmp(token, "exit") == 0) {
