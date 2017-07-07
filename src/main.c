@@ -60,22 +60,17 @@ node_t *enter_path(node_t *node, char *path, char **new_name) {
     /* Try to enter the path token by token */
     while (cur_token) {
         /* Enter only if current node is a dir */
-        if (fs_get_type(node) == Dir) {
-            if ((tmp = fs_find_in_dir(node, cur_token))) {
-                /* Resource found, get next token */
-                node = tmp;
-                cur_token = next_token;
-                next_token = strtok(NULL, TOK_PATH_CONTINUE);
-            } else {
-                /* Resource not found */
-                if (new_name != NULL && next_token == NULL) {
-                    *new_name = cur_token;
-                    break;
-                }
-                return NULL;
-            }
+        if (fs_get_type(node) != Dir) return NULL;
+        if ((tmp = fs_find_in_dir(node, cur_token))) {
+            /* Resource found, get next token */
+            node = tmp;
+            cur_token = next_token;
+            next_token = strtok(NULL, TOK_PATH_CONTINUE);
         } else {
-            return NULL;
+            /* Resource not found, new file? */
+            if (new_name == NULL || next_token != NULL) return NULL;
+            *new_name = cur_token;
+            cur_token = NULL;
         }
     }
     return node;
@@ -88,12 +83,12 @@ node_t *enter_path(node_t *node, char *path, char **new_name) {
  */
 void do_create(node_t *node, uint8_t type) {
     char *name = NULL;
-    int res = -1;
     node = enter_path(node, NULL, &name);
-    if (name != NULL)
-        res = fs_create(node, name, type);
-
-    printf(res == 0 ? RES_OK : RES_FAIL);
+    if (name != NULL && (fs_create(node, name, type)) == 0) {
+        printf(RES_OK);
+        return;
+    }
+    printf(RES_FAIL);
 }
 
 /**
