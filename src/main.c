@@ -40,6 +40,11 @@
 #define RES_WRITE(x) "ok %d\n", (x)
 #define RES_FIND(x) "ok %s\n", (x)
 
+#define TOK_SPACE " \n\r\t"
+#define TOK_PATH_CONTINUE "/\n\r\t"
+#define TOK_PATH_START " /\n\r\t"
+#define TOK_CONTENT "\"\n\r\t"
+
 /****************************************************************************
  * Private Functions
  ****************************************************************************/
@@ -48,10 +53,9 @@
  */
 node_t *enter_path(node_t *node, char *path, char **new_name) {
     node_t *tmp = NULL;
-    char *cur_token = strtok(path, " /\n\r");
-    char *next_token = strtok(NULL, "/\n\r");
-    if (cur_token == NULL)
-        return NULL; /* Empty path */
+    char *cur_token = strtok(path, TOK_PATH_START);
+    if (cur_token == NULL) return NULL; /* Empty path */
+    char *next_token = strtok(NULL, TOK_PATH_CONTINUE);
     /* Try to enter the path token by token */
     while (cur_token) {
         /* Enter only if current node is a dir */
@@ -60,7 +64,7 @@ node_t *enter_path(node_t *node, char *path, char **new_name) {
                 /* Resource found, get next token */
                 node = tmp;
                 cur_token = next_token;
-                next_token = strtok(NULL, "/\n\r");
+                next_token = strtok(NULL, TOK_PATH_CONTINUE);
             } else {
                 /* Resource not found */
                 if (new_name != NULL && next_token == NULL) {
@@ -111,9 +115,8 @@ void do_read(node_t *node) {
  */
 void do_write(node_t *node) {
     char *path, *new_content;
-
-    path = strtok(NULL, " \n\r"); /* First token is path */
-    new_content = strtok(NULL, "\"\n\r"); /* Second token is content */
+    path = strtok(NULL, TOK_SPACE); /* First token is path */
+    new_content = strtok(NULL, TOK_CONTENT); /* Second token is content */
 
     node = enter_path(node, path, NULL);
     if (node != NULL
@@ -149,7 +152,7 @@ void do_delete(node_t *node, int recursive) {
  * Find a resource in the entire FS
  */
 void do_find(node_t *root) {
-    char *token = strtok(NULL, " \n\r");
+    char *token = strtok(NULL, TOK_SPACE);
     size_t nres = 0;
     node_t **res = fs_find_r(root, token, &nres, NULL);
     if(nres > 0) {
@@ -179,7 +182,7 @@ int main() {
     /* Command parser */
     line = my_getline();
     while (*line != '\0') {
-        char *token = strtok(line, " \n\r");
+        char *token = strtok(line, TOK_SPACE);
         if (token) {
             if (strcmp(token, "create") == 0) {
                 do_create(root, File);
