@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of SimpleFS, an API course project
  * Copyright (c) 2017 Francesco Circhetta.
  * 
@@ -30,6 +30,15 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "simplefs.h"
+
+/****************************************************************************
+ * Pre-processor Definitions
+ ****************************************************************************/
+#define RES_OK "ok\n"
+#define RES_FAIL "no\n"
+#define RES_READ(x) "contenuto %s\n", (x)
+#define RES_WRITE(x) "ok %d\n", (x)
+#define RES_FIND(x) "ok %s\n", (x)
 
 /****************************************************************************
  * Private Functions
@@ -72,46 +81,48 @@ node_t *enter_path(node_t *node, char *path, char **new_name) {
  * create_dir <path>
  * Create a new empty file/directory
  */
-int do_create(node_t *node, uint8_t type) {
+void do_create(node_t *node, uint8_t type) {
     char *name = NULL;
+    int res = -1;
     node = enter_path(node, NULL, &name);
     if (name != NULL)
-        return fs_create(node, name, type);
+        res = fs_create(node, name, type);
 
-    /* File exists or invalid path */
-    return -1;
+    printf(res == 0 ? RES_OK : RES_FAIL);
 }
 
 /**
  * read <path>
  * Read file content
  */
-char *do_read(node_t *node) {
+void do_read(node_t *node) {
+    char *content;
     node = enter_path(node, NULL, NULL);
-    if (node == NULL)
-        return NULL;
-
-    return fs_get_file_content(node);
+    if (node != NULL && (content = fs_get_file_content(node))) {
+        printf(RES_READ(content));
+        return;
+    }
+    printf(RES_FAIL);
 }
 
 /**
  * write <path> "<content>"
  * Write the whole file content
  */
-int do_write(node_t *node) {
+void do_write(node_t *node) {
     char *path, *new_content;
 
     path = strtok(NULL, " \n\r"); /* First token is path */
     new_content = strtok(NULL, "\"\n\r"); /* Second token is content */
 
     node = enter_path(node, path, NULL);
-    if (node == NULL || new_content == NULL)
-        return -1;
-
-    if (fs_set_file_content(node, new_content) == 0)
-        return (int) strlen(new_content);
-    else
-        return -1;
+    if (node != NULL
+        && new_content != NULL
+        && fs_set_file_content(node, new_content) == 0) {
+        printf(RES_WRITE((int) strlen(new_content)));
+        return;
+    }
+    printf(RES_FAIL);
 }
 
 /**
@@ -119,17 +130,18 @@ int do_write(node_t *node) {
  * delete_r <path>
  * Delete a resource (also recursively)
  */
-int do_delete(node_t *node, int recursive) {
+void do_delete(node_t *node, int recursive) {
+    int res = -1;
     node = enter_path(node, NULL, NULL);
-    if (node == NULL)
-        return -1;
-
-    if (recursive) {
-        fs_delete_r(node);
-        return 0;
-    } else {
-        return fs_delete(node);
+    if (node != NULL) {
+        if (recursive) {
+            fs_delete_r(node);
+            res = 0;
+        } else {
+            res = fs_delete(node);
+        }
     }
+    printf(res == 0 ? RES_OK : RES_FAIL);
 }
 
 /**
@@ -148,12 +160,12 @@ void do_find(node_t *root) {
         free(res);
         qsort(paths, nres, sizeof(char *), compare_str);
         for(int i = 0; i < nres; i++) {
-            printf("ok %s\n", paths[i]);
+            printf(RES_FIND(paths[i]));
             free(paths[i]);
         }
         free(paths);
     } else {
-        printf("no\n");
+        printf(RES_FAIL);
     }
 }
 
@@ -162,69 +174,37 @@ void do_find(node_t *root) {
  ****************************************************************************/
 int main() {
     char *line = NULL;
-    node_t *root = fs_new_root(); /* Root node init */
-
+    /* Root node init */
+    node_t *root = fs_new_root();
     /* Command parser */
     line = my_getline();
     while (*line != '\0') {
-        char *token;
-
-        token = strtok(line, " \n\r");
-        if (!token) {
-            /* Empty line, skip */
-        } else if (strcmp(token, "create") == 0) {
-            if (do_create(root, File) == 0) {
-                printf("ok\n");
-            } else {
-                printf("no\n");
+        char *token = strtok(line, " \n\r");
+        if (token) {
+            if (strcmp(token, "create") == 0) {
+                do_create(root, File);
+            } else if (strcmp(token, "create_dir") == 0) {
+                do_create(root, Dir);
+            } else if (strcmp(token, "read") == 0) {
+                do_read(root);
+            } else if (strcmp(token, "write") == 0) {
+                do_write(root);
+            } else if (strcmp(token, "delete") == 0) {
+                do_delete(root, 0);
+            } else if (strcmp(token, "delete_r") == 0) {
+                do_delete(root, 1);
+            } else if (strcmp(token, "find") == 0) {
+                do_find(root);
+            } else if (strcmp(token, "exit") == 0) {
+                break;
             }
-        } else if (strcmp(token, "create_dir") == 0) {
-            if (do_create(root, Dir) == 0) {
-                printf("ok\n");
-            } else {
-                printf("no\n");
-            }
-        } else if (strcmp(token, "read") == 0) {
-            char *content;
-            content = do_read(root);
-            if (content) {
-                printf("contenuto %s\n", content);
-            } else {
-                printf("no\n");
-            }
-        } else if (strcmp(token, "write") == 0) {
-            int written = do_write(root);
-            if (written > 0) {
-                printf("ok %d\n", written);
-            } else {
-                printf("no\n");
-            }
-        } else if (strcmp(token, "delete") == 0) {
-            if (do_delete(root, 0) == 0) {
-                printf("ok\n");
-            } else {
-                printf("no\n");
-            }
-        } else if (strcmp(token, "delete_r") == 0) {
-            if (do_delete(root, 1) == 0) {
-                printf("ok\n");
-            } else {
-                printf("no\n");
-            }
-        } else if (strcmp(token, "find") == 0) {
-            do_find(root);
-        } else if (strcmp(token, "exit") == 0) {
-            break;
         }
-
         free(line);
         line = my_getline();
     }
-
     free(line);
     hashtable_destroy(root->payload.dirhash);
     free(root->name);
     free(root);
-
     return 0;
 }
