@@ -133,6 +133,7 @@ void do_delete(node_t *node, bool recursive) {
     node = enter_path(node, NULL, NULL);
     if (node != NULL) {
         printf(fs_delete(node, recursive) == 0 ? RES_OK : RES_FAIL);
+        return;
     }
     printf(RES_FAIL);
 }
