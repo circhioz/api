@@ -148,30 +148,19 @@ int fs_create(node_t *parent, char *key, uint8_t type) {
 }
 
 /**
- * Delete a leaf
- * Return 0 if succeeded, -1 if failed
+ * Delete a resource (also recursively)
  */
-int fs_delete(node_t *node) {
-    if (node->type == Dir) {
-        return fs_free_dir(node);
-    } else {
-        fs_free_file(node);
-        return 0;
-    }
-}
-
-/**
- * Delete a resource recursively
- */
-void fs_delete_r(node_t *node) {
+int fs_delete(node_t *node, bool recursive) {
     if (node->type == Dir) {
         /* If dir is not empty, delete every child */
         if (hashtable_get_size(node->payload.dirhash) > 0) {
+            /* Recursion disabled? Dir is not empty! */
+            if (recursive == false) return -1;
             /* Iterate through the table */
             int state = 0;
             node_t *child = hashtable_iterate(node->payload.dirhash, &state);
             while (child) {
-                fs_delete_r(child);
+                fs_delete(child, true);
                 /* We need to reset the iterator state after
                  * every call to fs_delete_r, as it can change
                  * the order of the elements in the table*/
@@ -183,6 +172,7 @@ void fs_delete_r(node_t *node) {
     } else {
         fs_free_file(node);
     }
+    return 0;
 }
 
 /**

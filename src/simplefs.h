@@ -22,6 +22,7 @@
  * Included Files
  ****************************************************************************/
 #include <stdint.h>
+#include <stdbool.h>
 #include "utils.h"
 #include "hashtable.h"
 
@@ -63,8 +64,7 @@ char *fs_get_file_content(node_t *);
 uint8_t fs_get_type(node_t *);
 int fs_set_file_content(node_t *, char *);
 int fs_create(node_t *, char *, uint8_t);
-int fs_delete(node_t *);
-void fs_delete_r(node_t *);
+int fs_delete(node_t *, bool);
 void fs_destroy_root(node_t *);
 node_t **fs_find_r(node_t *, char *, size_t *, node_t **);
 node_t *fs_find_in_dir(node_t *, char *);
