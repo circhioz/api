@@ -200,6 +200,15 @@ node_t *fs_new_root(void) {
 }
 
 /**
+ * Destroy the root directory
+ */
+void fs_destroy_root(node_t *root) {
+    hashtable_destroy(root->payload.dirhash);
+    free(root->name);
+    free(root);
+}
+
+/**
  * Find resources recursively given a starting directory
  */
 node_t **fs_find_r(node_t *node, char *name, size_t *num, node_t **array) {

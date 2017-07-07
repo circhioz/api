@@ -206,8 +206,6 @@ int main() {
         line = my_getline();
     }
     free(line);
-    hashtable_destroy(root->payload.dirhash);
-    free(root->name);
-    free(root);
+    fs_destroy_root(root);
     return 0;
 }

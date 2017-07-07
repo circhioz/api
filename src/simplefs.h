@@ -65,6 +65,7 @@ int fs_set_file_content(node_t *, char *);
 int fs_create(node_t *, char *, uint8_t);
 int fs_delete(node_t *);
 void fs_delete_r(node_t *);
+void fs_destroy_root(node_t *);
 node_t **fs_find_r(node_t *, char *, size_t *, node_t **);
 node_t *fs_find_in_dir(node_t *, char *);
 node_t *fs_new_root(void);
