@@ -26,32 +26,15 @@
  * Private Functions
  ****************************************************************************/
 /**
- * Free file structure and delete directory entry
+ * Free file node and delete directory entry
  */
-void fs_free_file(node_t *file) {
-    /* Free: file content, name, node struct
+void fs__free(node_t *node) {
+    /* Free: payload, name, node struct
      * Remove: entry in parent hashtable */
-    free(file->payload.content);
-    hashtable_remove(file->parent->payload.dirhash, file->name);
-    free(file->name);
-    free(file);
-}
-
-/**
- * Free directory structure and delete parent directory entry
- */
-int fs_free_dir(node_t *dir) {
-    /* Check if dir is empty */
-    if (hashtable_get_size(dir->payload.dirhash) == 0) {
-        /* Free: hashtable struct, name, node struct
-         * Remove: entry in parent hashtable */
-        hashtable_destroy(dir->payload.dirhash);
-        hashtable_remove(dir->parent->payload.dirhash, dir->name);
-        free(dir->name);
-        free(dir);
-        return 0;
-    }
-    return -1;
+    free(node->payload.content);
+    hashtable_remove(node->parent->payload.dirhash, node->name);
+    free(node->name);
+    free(node);
 }
 
 /****************************************************************************
@@ -168,10 +151,8 @@ int fs_delete(node_t *node, bool recursive) {
                 child = hashtable_iterate(node->payload.dirhash, &state);
             }
         }
-        fs_free_dir(node);
-    } else {
-        fs_free_file(node);
     }
+    fs__free(node);
     return 0;
 }
 
