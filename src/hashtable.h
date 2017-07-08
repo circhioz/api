@@ -22,6 +22,7 @@
  * Included Files
  ****************************************************************************/
 #include <stdint.h>
+#include <stdbool.h>
 
 /****************************************************************************
 * Public Types
@@ -46,7 +47,7 @@ typedef struct _hashtable {
 uint16_t hashtable_get_size(hashtable_t *);
 hashtable_t *hashtable_create(void);
 void *hashtable_get(hashtable_t *, char *);
-void hashtable_set(hashtable_t *, char *, void *);
+bool hashtable_set(hashtable_t *, char *, void *);
 void hashtable_resize(hashtable_t *, uint16_t);
 void hashtable_remove(hashtable_t *, char *);
 void *hashtable_iterate(hashtable_t *, int *);

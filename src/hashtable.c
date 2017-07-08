@@ -89,21 +89,22 @@ void *hashtable_get(hashtable_t *table, char *key) {
 /**
  * Assign a value to the given key in the table.
  */
-void hashtable_set(hashtable_t *t, char *key, void *value) {
+bool hashtable_set(hashtable_t *t, char *key, void *value) {
     int index = hashtable_find_slot(t, key);
     if (t->body[index].key != NULL) {
-        /* Entry exists; update it. */
-        t->body[index].value = value;
+        /* Entry exists; fail. */
+        return false;
     } else {
         /* Create a new  entry */
         if ((float) (t->size + 1) / t->capacity > 0.8) {
             /* Resize the hash table */
-            hashtable_resize(t, t->capacity * 2);
+            hashtable_resize(t, t->capacity * (uint16_t)2);
             index = hashtable_find_slot(t, key);
         }
-        t->size = t->size + 1;
+        t->size = t->size + (uint16_t)1;
         t->body[index].key = key;
         t->body[index].value = value;
+        return true;
     }
 }
 
