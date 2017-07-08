@@ -103,27 +103,29 @@ node_t *fs_find_in_dir(node_t *parent, char *key) {
  * Return 0 if succeeded, -1 if failed
  */
 int fs_create(node_t *parent, char *key, uint8_t type) {
-    if (hashtable_get(parent->payload.dirhash, key) != NULL /* Node already exists */
-        || hashtable_get_size(parent->payload.dirhash) >= MAX_NODES /* Dir is full */
+    if (hashtable_get_size(parent->payload.dirhash) >= MAX_NODES /* Dir is full */
         || strlen(key) > MAX_NAMELENGHT /* Name is too long */
         || parent->depth >= MAX_DEPTH) /* Parent node is at max depth */
         return -1;
     /* Create a new empty resource */
     node_t *child = malloc_or_die(sizeof(node_t));
     child->name = my_strdup(key);
-    child->depth = parent->depth + 1;
-    child->parent = parent;
-    child->type = type;
-    if (type == Dir) {
-        // Empty DirHash
-        child->payload.dirhash = hashtable_create();
-    } else {
-        // Empty content
-        child->payload.content = calloc_or_die(1, sizeof(char));
+    if (hashtable_set(parent->payload.dirhash, child->name, child) == true) {
+        child->depth = parent->depth + (uint16_t)1;
+        child->parent = parent;
+        child->type = type;
+        if (type == Dir) {
+            // Empty DirHash
+            child->payload.dirhash = hashtable_create();
+        } else {
+            // Empty content
+            child->payload.content = calloc_or_die(1, sizeof(char));
+        }
+        return 0;
     }
-    /* Add resource to its parent's hashtable */
-    hashtable_set(parent->payload.dirhash, child->name, child);
-    return 0;
+    free(child->name);
+    free(child);
+    return -1;
 }
 
 /**
