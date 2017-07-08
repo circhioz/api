@@ -148,12 +148,12 @@ void do_find(node_t *root) {
     node_t **res = fs_find_r(root, token, &nres, NULL);
     if(nres > 0) {
         char **paths = malloc_or_die(nres * sizeof(char *));
-        for (int i = 0; i < nres; i++) {
+        for (size_t i = 0; i < nres; i++) {
             paths[i] = fs_get_path(res[i], 0);
         }
         free(res);
         qsort(paths, nres, sizeof(char *), compare_str);
-        for(int i = 0; i < nres; i++) {
+        for(size_t i = 0; i < nres; i++) {
             printf(RES_FIND(paths[i]));
             free(paths[i]);
         }

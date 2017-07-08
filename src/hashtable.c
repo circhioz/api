@@ -135,8 +135,8 @@ void hashtable_remove(hashtable_t *t, char *key) {
         int next = (idx + 1) % t->capacity;
         while (t->body[next].key != NULL) {
             int next_base = hashtable_hash(t->body[next].key) % t->capacity;
-            if (next > idx && (next_base <= idx || next_base > next) ||
-                next < idx && (next_base <= idx && next_base > next)) {
+            if ((next > idx && (next_base <= idx || next_base > next))
+                || (next < idx && (next_base <= idx && next_base > next))) {
                 t->body[idx].key = t->body[next].key;
                 t->body[idx].value = t->body[next].value;
                 idx = next;
