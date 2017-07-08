@@ -136,16 +136,15 @@ int fs_delete(node_t *node, bool recursive) {
         /* Recursion disabled? Dir is not empty! */
         if (recursive == false) return -1;
         /* Iterate through the table */
-        int state = 0;
-        node_t *child = hashtable_iterate(node->payload.dirhash, &state);
-        while (child) {
-            fs_delete(child, true);
-            /* We need to reset the iterator state after
-             * every call to fs_delete_r, as it can change
-             * the order of the elements in the table*/
-            state = 0;
-            child = hashtable_iterate(node->payload.dirhash, &state);
-        }
+        do {
+            int state = 0;
+            node_t *child = hashtable_iterate(node->payload.dirhash, &state);
+            while (child) {
+                fs_delete(child, true);
+                child = hashtable_iterate(node->payload.dirhash, &state);
+            }
+        } while(hashtable_get_size(node->payload.dirhash) > 0);
+
     }
     fs__free(node);
     return 0;
