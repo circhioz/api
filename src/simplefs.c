@@ -43,20 +43,16 @@ void fs__free(node_t *node) {
 /**
  * Create and return a new string with node full path
  */
-char *fs_get_path(node_t *node) {
-    char *old, *path;
-    /* Climb down from the desired node to the root,
-     * adding every node name to the beginning of the path string */
-    path = calloc_or_die(1, sizeof(char));
-    do {
-        old = path;
-        path = calloc_or_die((strlen(path) + strlen(node->name) + 2), sizeof(char));
-        path[0] = '/';
+char *fs_get_path(node_t *node, size_t len) {
+    char *path;
+    /* Root? Alloc path array */
+    if (node->parent != NULL) {
+        path = fs_get_path(node->parent, len + strlen(node->name) + 1);
+        strcat(path, "/");
         strcat(path, node->name);
-        strcat(path, old);
-        free(old);
-        node = node->parent;
-    } while (node->parent != NULL);
+    } else {
+        path = calloc_or_die(len + 1, sizeof(char));
+    }
     return path;
 }
 
