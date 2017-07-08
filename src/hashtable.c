@@ -37,7 +37,7 @@
  * Implements the djb k=33 hash function.
  */
 unsigned long hashtable_hash(char *str) {
-    unsigned long hash = 5381;
+    register unsigned long hash = 5381;
     int c;
     while ((c = *str++))
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
@@ -59,7 +59,7 @@ int hashtable_find_slot(hashtable_t *table, char *key) {
 /**
  * Allocate a new memory block with the given capacity.
  */
-hashtable_entry_t *hashtable_body_allocate(unsigned int capacity) {
+static inline hashtable_entry_t *hashtable_body_allocate(unsigned int capacity) {
     return (hashtable_entry_t *) calloc_or_die(capacity, sizeof(hashtable_entry_t));
 }
 
@@ -149,25 +149,23 @@ void hashtable_remove(hashtable_t *t, char *key) {
     }
 }
 
-
 /**
  * Iterate through table entries (uses only an int as state memory)
  * Return NULL if no other element is present
  */
 void *hashtable_iterate(hashtable_t *table, int *state) {
-    while (*state < table->capacity) {
+    register int local_state = *state;
+    while (local_state < table->capacity) {
         hashtable_entry_t *entry;
-        entry = &(table->body[*state]);
+        entry = &(table->body[local_state]);
         if (entry->key != NULL) {
-            *state = *state + 1;
+            *state = local_state + 1;
             return entry->value;
-        } else {
-            *state = *state + 1;
         }
+        local_state++;
     }
     return NULL;
 }
-
 
 /**
  * Destroy the table and deallocate it from memory. This does not deallocate the contained items.
