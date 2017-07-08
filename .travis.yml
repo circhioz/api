@@ -6,4 +6,5 @@ script:
   - mkdir build && cd build
   - cmake ..
   - make
-  - echo exit > ./src/SimpleFS
+  - cd ../test
+  - ./test_cases.sh
