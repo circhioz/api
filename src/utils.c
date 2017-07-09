@@ -110,7 +110,6 @@ int my_getline(char **line, size_t *len) {
     return read_pos - (*line);
 }
 
-z
 /**
  * Compare two strings using strcmp and return the result
  * Used as compare function for qsort
