@@ -170,8 +170,9 @@ int main() {
     /* Root node init */
     node_t *root = fs_new_root();
     /* Command parser */
-    char *line = my_getline();
-    while (*line != '\0') {
+    char *line = NULL;
+    size_t len = 0;
+    while (my_getline(&line, &len) >= 0) {
         char *token = strtok(line, TOK_SPACE);
         if (token) {
             if (strcmp(token, "create") == 0) {
@@ -192,8 +193,6 @@ int main() {
                 break;
             }
         }
-        free(line);
-        line = my_getline();
     }
     free(line);
     fs_destroy_root(root);
