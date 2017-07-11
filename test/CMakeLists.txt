@@ -1,8 +1,6 @@
-add_library(cutest STATIC CuTest.c CuTest.h)
-
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
-add_executable(unit_tests AllTests.c HashtableTest.c)
-target_link_libraries(unit_tests cutest hashtable simplefs utils)
+add_executable(test-hashtable test_hashtable.c)
+target_link_libraries(test-hashtable hashtable utils -lm)
 
-add_test(UnitTests unit_tests)
+add_test(HashtableTest test-hashtable)
