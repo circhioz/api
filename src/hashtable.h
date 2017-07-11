@@ -50,7 +50,7 @@ void *hashtable_get(hashtable_t *, char *);
 bool hashtable_set(hashtable_t *, char *, void *);
 void hashtable_resize(hashtable_t *, uint16_t);
 void hashtable_remove(hashtable_t *, char *);
-void *hashtable_iterate(hashtable_t *, int *);
+void *hashtable_iterate(hashtable_t *, size_t *);
 void hashtable_destroy(hashtable_t *);
 
 #endif //API_HASHTABLE_H

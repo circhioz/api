@@ -61,6 +61,8 @@ uint64_t hashtable_hash(const char *key) {
         case 2: h ^= ((uint64_t) data2[1]) << 8;
         case 1: h ^= ((uint64_t) data2[0]);
             h *= m;
+        default:
+            break;
     };
     h ^= h >> r;
     h *= m;
@@ -71,8 +73,8 @@ uint64_t hashtable_hash(const char *key) {
 /**
  * Find an available slot for the given key, using linear probing.
  */
-int hashtable_find_slot(hashtable_t *table, char *key) {
-    int idx = hashtable_hash(key) % table->capacity;
+size_t hashtable_find_slot(hashtable_t *table, char *key) {
+    size_t idx = hashtable_hash(key) % table->capacity;
     while (table->body[idx].key != NULL
            && strcmp(table->body[idx].key, key) != 0) {
         idx = (idx + 1) % table->capacity;
@@ -106,7 +108,7 @@ hashtable_t *hashtable_create(void) {
  * Return the item associated with the given key, or NULL if not found.
  */
 void *hashtable_get(hashtable_t *table, char *key) {
-    int idx = hashtable_find_slot(table, key);
+    size_t idx = hashtable_find_slot(table, key);
     return table->body[idx].key == NULL ? NULL : table->body[idx].value;
 }
 
@@ -114,7 +116,7 @@ void *hashtable_get(hashtable_t *table, char *key) {
  * Assign a value to the given key in the table.
  */
 bool hashtable_set(hashtable_t *t, char *key, void *value) {
-    int index = hashtable_find_slot(t, key);
+    size_t index = hashtable_find_slot(t, key);
     if (t->body[index].key != NULL) {
         /* Entry exists; fail. */
         return false;
@@ -142,7 +144,7 @@ void hashtable_resize(hashtable_t *t, uint16_t capacity) {
     t->body = hashtable_body_allocate(capacity);
     t->size = 0;
     t->capacity = capacity;
-    for (int i = 0; i < old_capacity; i++) {
+    for (unsigned int i = 0; i < old_capacity; i++) {
         if (old_body[i].key != NULL) {
             hashtable_set(t, old_body[i].key, old_body[i].value);
         }
@@ -155,11 +157,11 @@ void hashtable_resize(hashtable_t *t, uint16_t capacity) {
  * The algoritm rearranges entries not to disrupt the probing sequence
  */
 void hashtable_remove(hashtable_t *t, char *key) {
-    int idx = hashtable_find_slot(t, key);
+    size_t idx = hashtable_find_slot(t, key);
     if (t->body[idx].key != NULL) {
-        int next = (idx + 1) % t->capacity;
+        size_t next = (idx + 1) % t->capacity;
         while (t->body[next].key != NULL) {
-            int next_base = hashtable_hash(t->body[next].key) % t->capacity;
+            size_t next_base = hashtable_hash(t->body[next].key) % t->capacity;
             if ((next > idx && (next_base <= idx || next_base > next))
                 || (next < idx && (next_base <= idx && next_base > next))) {
                 t->body[idx].key = t->body[next].key;
@@ -178,8 +180,8 @@ void hashtable_remove(hashtable_t *t, char *key) {
  * Iterate through table entries (uses only an int as state memory)
  * Return NULL if no other element is present
  */
-void *hashtable_iterate(hashtable_t *table, int *state) {
-    register int local_state = *state;
+void *hashtable_iterate(hashtable_t *table, size_t *state) {
+    register size_t local_state = *state;
     while (local_state < table->capacity) {
         hashtable_entry_t *entry;
         entry = &(table->body[local_state]);
