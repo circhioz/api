@@ -110,7 +110,7 @@ int fs_create(node_t *parent, char *key, uint8_t type) {
     /* Create a new empty resource */
     node_t *child = malloc_or_die(sizeof(node_t));
     child->name = my_strdup(key);
-    if (hashtable_set(parent->payload.dirhash, child->name, child) == true) {
+    if (hashtable_set(parent->payload.dirhash, child->name, child)) {
         child->depth = parent->depth + (uint16_t)1;
         child->parent = parent;
         child->type = type;
@@ -136,7 +136,7 @@ int fs_delete(node_t *node, bool recursive) {
     if (node->type == Dir
         && hashtable_get_size(node->payload.dirhash) > 0) {
         /* Recursion disabled? Dir is not empty! */
-        if (recursive == false) return -1;
+        if (!recursive) return -1;
         /* Iterate through the table */
         do {
             int state = 0;
