@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 2.8)
-project(SimpleFS)
+add_library(utils STATIC utils.c utils.h)
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_FLAGS "-std=c99 -Wall -Wextra")
+add_library(hashtable STATIC hashtable.c hashtable.h)
+add_dependencies(hashtable utils)
 
-set(SOURCE_FILES hashtable.c hashtable.h utils.c utils.h simplefs.c simplefs.h main.c)
+add_library(simplefs STATIC simplefs.c simplefs.h)
+add_dependencies(simplefs hashtable utils)
 
-add_executable(SimpleFS ${SOURCE_FILES})
+add_executable(project main.c)
+target_link_libraries(project simplefs hashtable utils)

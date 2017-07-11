@@ -5,6 +5,4 @@ install: false
 script:
   - mkdir build && cd build
   - cmake ..
-  - make
-  - cd ../test
-  - ./test_cases.sh
+  - make all test
