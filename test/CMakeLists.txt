@@ -1,14 +1,11 @@
-add_executable(test-hashtable main.c)
-add_dependencies(test-hashtable hashtable utils)
-target_link_libraries(test-hashtable hashtable utils)
+add_library(cutest STATIC CuTest.c CuTest.h)
 
-add_executable(test-filesystem main.c)
-add_dependencies(test-filesystem simplefs utils)
-target_link_libraries(test-filesystem simplefs  utils)
+include_directories(${CMAKE_SOURCE_DIR}/src)
 
-add_test(Hashtable test-hashtable)
-add_test(Filesystem test-filesystem)
+add_executable(unit_tests all_tests.c hashtable_test.c)
+target_link_libraries(unit_tests cutest hashtable simplefs utils)
 
+add_test(UnitTests unit_tests)
 find_program (BASH_PROGRAM bash)
 if (BASH_PROGRAM)
     add_test (TestCases ${BASH_PROGRAM} ${CMAKE_SOURCE_DIR}/test/test_cases.sh)
