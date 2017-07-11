@@ -81,13 +81,13 @@ char *fs_get_file_content(node_t *node) {
 bool fs_set_file_content(node_t *node, char *new_content) {
     if (fs_get_type(node) != File) {
         /* This isn't a file */
-        return true;
+        return false;
     }
     /* Free the old content */
     free(node->payload.content);
     /* Duplicate the new content */
     node->payload.content = my_strdup(new_content);
-    return false;
+    return true;
 }
 
 /**
