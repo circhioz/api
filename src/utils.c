@@ -23,6 +23,11 @@
 #include "utils.h"
 
 /****************************************************************************
+ * Pre-processor Definitions
+ ****************************************************************************/
+#define MIN_CHUNK 64
+
+/****************************************************************************
  * Public Functions
  ****************************************************************************/
 
@@ -70,30 +75,40 @@ char *my_strdup(char *str) {
 /**
  * Local getline() implementation (not available in C99)
  */
-char *my_getline(void) {
-    char *line = malloc_or_die(100 * sizeof(char)), *linep = line;
-    size_t lenmax = 100, len = lenmax;
-    for (;;) {
-        /* Get char from stdin */
-        int c = fgetc(stdin);
-        /* Stop at EOF */
-        if (c == EOF)
-            break;
-        /* If buffer is full, double its size */
-        if (--len == 0) {
-            len = lenmax;
-            char *linen = realloc_or_die(linep, lenmax *= 2);
-            line = linen + (line - linep);
-            linep = linen;
+int my_getline(char **line, size_t *len) {
+    if(*line == NULL) {
+        *len = MIN_CHUNK;
+        *line = malloc_or_die(MIN_CHUNK * sizeof(char));
+    }
+    size_t n_avail = *len;
+    char *read_pos = *line;
+    for(;;) {
+        register int c = fgetc(stdin);
+        /* We always want at least one char left in the buffer, since we
+         * always NULL-terminate the line buffer.  */
+        if (n_avail < 2) {
+            *len = (*len > MIN_CHUNK) ? *len * 2 : *len + MIN_CHUNK;
+            n_avail = *len + *line - read_pos;
+            *line = realloc_or_die(*line, *len);
+            read_pos = *len - n_avail + *line;
         }
-        /* Add char to buffer but stop at newline */
-        if ((*line++ = c) == '\n')
+        if (c == EOF) {
+            /* Return partial line, if any.  */
+            if (read_pos == *line)
+                return -1;
+            else
+                break;
+        }
+        *read_pos++ = (char)c;
+        n_avail--;
+        if (c == '\n')
+            /* Return the line.  */
             break;
     }
-    *line = '\0';
-    return linep;
+    /* Done - NUL terminate and return the number of chars read.  */
+    *read_pos = '\0';
+    return read_pos - (*line);
 }
-
 
 /**
  * Compare two strings using strcmp and return the result

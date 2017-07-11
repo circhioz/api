@@ -31,7 +31,7 @@ void *malloc_or_die(size_t);
 void *calloc_or_die(size_t, size_t);
 void *realloc_or_die(void *, size_t);
 char *my_strdup(char *);
-char *my_getline(void);
+int my_getline(char **, size_t *);
 int compare_str(const void *, const void *);
 
 #endif //API_UTILS_H

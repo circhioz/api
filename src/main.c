@@ -84,7 +84,7 @@ node_t *enter_path(node_t *node, char *path, char **new_name) {
 void do_create(node_t *node, uint8_t type) {
     char *name = NULL;
     node = enter_path(node, NULL, &name);
-    if (name != NULL && (fs_create(node, name, type)) == 0) {
+    if (name != NULL && fs_create(node, name, type)) {
         printf(RES_OK);
         return;
     }
@@ -117,7 +117,7 @@ void do_write(node_t *node) {
     node = enter_path(node, path, NULL);
     if (node != NULL
         && new_content != NULL
-        && fs_set_file_content(node, new_content) == 0) {
+        && fs_set_file_content(node, new_content)) {
         printf(RES_WRITE((int) strlen(new_content)));
         return;
     }
@@ -132,7 +132,7 @@ void do_write(node_t *node) {
 void do_delete(node_t *node, bool recursive) {
     node = enter_path(node, NULL, NULL);
     if (node != NULL) {
-        printf(fs_delete(node, recursive) == 0 ? RES_OK : RES_FAIL);
+        printf(fs_delete(node, recursive) == true ? RES_OK : RES_FAIL);
         return;
     }
     printf(RES_FAIL);
@@ -170,8 +170,9 @@ int main() {
     /* Root node init */
     node_t *root = fs_new_root();
     /* Command parser */
-    char *line = my_getline();
-    while (*line != '\0') {
+    char *line = NULL;
+    size_t len = 0;
+    while (my_getline(&line, &len) >= 0) {
         char *token = strtok(line, TOK_SPACE);
         if (token) {
             if (strcmp(token, "create") == 0) {
@@ -192,8 +193,6 @@ int main() {
                 break;
             }
         }
-        free(line);
-        line = my_getline();
     }
     free(line);
     fs_destroy_root(root);

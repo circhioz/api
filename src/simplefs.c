@@ -76,18 +76,18 @@ char *fs_get_file_content(node_t *node) {
 
 /**
  * Assign new content to a file
- * Return 0 if succeeded, -1 if failed
+ * Return true if succeeded, false if failed
  */
-int fs_set_file_content(node_t *node, char *new_content) {
+bool fs_set_file_content(node_t *node, char *new_content) {
     if (fs_get_type(node) != File) {
         /* This isn't a file */
-        return -1;
+        return false;
     }
     /* Free the old content */
     free(node->payload.content);
     /* Duplicate the new content */
     node->payload.content = my_strdup(new_content);
-    return 0;
+    return true;
 }
 
 /**
@@ -100,44 +100,46 @@ node_t *fs_find_in_dir(node_t *parent, char *key) {
 
 /**
  * Create new empty file or dir in a specific directory
- * Return 0 if succeeded, -1 if failed
+ * Return true if succeeded, false if failed
  */
-int fs_create(node_t *parent, char *key, uint8_t type) {
-    if (hashtable_get(parent->payload.dirhash, key) != NULL /* Node already exists */
-        || hashtable_get_size(parent->payload.dirhash) >= MAX_NODES /* Dir is full */
+bool fs_create(node_t *parent, char *key, uint8_t type) {
+    if (hashtable_get_size(parent->payload.dirhash) >= MAX_NODES /* Dir is full */
         || strlen(key) > MAX_NAMELENGHT /* Name is too long */
         || parent->depth >= MAX_DEPTH) /* Parent node is at max depth */
-        return -1;
+        return false;
     /* Create a new empty resource */
     node_t *child = malloc_or_die(sizeof(node_t));
     child->name = my_strdup(key);
-    child->depth = parent->depth + 1;
-    child->parent = parent;
-    child->type = type;
-    if (type == Dir) {
-        // Empty DirHash
-        child->payload.dirhash = hashtable_create();
-    } else {
-        // Empty content
-        child->payload.content = calloc_or_die(1, sizeof(char));
+    if (hashtable_set(parent->payload.dirhash, child->name, child)) {
+        child->depth = parent->depth + (uint16_t)1;
+        child->parent = parent;
+        child->type = type;
+        if (type == Dir) {
+            // Empty DirHash
+            child->payload.dirhash = hashtable_create();
+        } else {
+            // Empty content
+            child->payload.content = calloc_or_die(1, sizeof(char));
+        }
+        return true;
     }
-    /* Add resource to its parent's hashtable */
-    hashtable_set(parent->payload.dirhash, child->name, child);
-    return 0;
+    free(child->name);
+    free(child);
+    return false;
 }
 
 /**
  * Delete a resource (also recursively)
  */
-int fs_delete(node_t *node, bool recursive) {
+bool fs_delete(node_t *node, bool recursive) {
     /* If dir is not empty, delete every child */
     if (node->type == Dir
         && hashtable_get_size(node->payload.dirhash) > 0) {
         /* Recursion disabled? Dir is not empty! */
-        if (recursive == false) return -1;
+        if (!recursive) return false;
         /* Iterate through the table */
         do {
-            int state = 0;
+            size_t state = 0;
             node_t *child = hashtable_iterate(node->payload.dirhash, &state);
             while (child) {
                 fs_delete(child, true);
@@ -147,7 +149,7 @@ int fs_delete(node_t *node, bool recursive) {
 
     }
     fs__free(node);
-    return 0;
+    return true;
 }
 
 /**
@@ -177,7 +179,7 @@ void fs_destroy_root(node_t *root) {
  * Find resources recursively given a starting directory
  */
 node_t **fs_find_r(node_t *node, char *name, size_t *num, node_t **array) {
-    int state = 0; // Iterator state
+    size_t state = 0; // Iterator state
     node_t *child = hashtable_iterate(node->payload.dirhash, &state);
     while (child) {
         if (strcmp(child->name, name) == 0) {
