@@ -139,7 +139,7 @@ bool fs_delete(node_t *node, bool recursive) {
         if (!recursive) return false;
         /* Iterate through the table */
         do {
-            int state = 0;
+            size_t state = 0;
             node_t *child = hashtable_iterate(node->payload.dirhash, &state);
             while (child) {
                 fs_delete(child, true);
@@ -179,7 +179,7 @@ void fs_destroy_root(node_t *root) {
  * Find resources recursively given a starting directory
  */
 node_t **fs_find_r(node_t *node, char *name, size_t *num, node_t **array) {
-    int state = 0; // Iterator state
+    size_t state = 0; // Iterator state
     node_t *child = hashtable_iterate(node->payload.dirhash, &state);
     while (child) {
         if (strcmp(child->name, name) == 0) {
