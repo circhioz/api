@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd "$(dirname "$0")"
+
 normal=$(tput sgr0)
 red=$(tput setaf 1)
 green=$(tput setaf 2)
@@ -9,7 +11,7 @@ i=1
 tot=$(ls cases/*.input -1 | wc -l)
 for input in cases/*.input; do
     tname=$(basename "$input" .input)
-    out=$(cat cases/$tname.input | ../build/src/SimpleFS | diff cases/$tname.output -)
+    out=$(cat cases/$tname.input | ../build/src/project | diff cases/$tname.output -)
     if [ $? -eq 0 ]; then
         printf "[${green}  OK  ${normal}] ${i}/${tot}: $tname\n"
     else
