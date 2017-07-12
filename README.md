@@ -1,6 +1,6 @@
 # SimpleFS - a simple filesystem
 
-[![Build Status](https://travis-ci.org/circhioz/api.svg?branch=master)](https://travis-ci.org/circhioz/api)
+[![Build Status](https://travis-ci.org/circhioz/api.svg?branch=development)](https://travis-ci.org/circhioz/api)
 
 This is my proposed solution for the final assignment of the API (Algoritmi e Principi dell'Informatica) course.
 
