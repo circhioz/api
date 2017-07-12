@@ -118,20 +118,20 @@ bool fs_create(node_t *parent, char *key, uint8_t type) {
  */
 bool fs_delete(node_t *node, bool recursive) {
     /* If dir is not empty, delete every child */
-    if (node->type == Dir
-        && hashtable_get_size(node->payload.dirhash) > 0) {
-        /* Recursion disabled? Dir is not empty! */
-        if (!recursive) return false;
-        /* Iterate through the table */
-        do {
-            size_t state = 0;
-            node_t *child = hashtable_iterate(node->payload.dirhash, &state);
-            while (child) {
-                fs_delete(child, true);
-                child = hashtable_iterate(node->payload.dirhash, &state);
-            }
-        } while(hashtable_get_size(node->payload.dirhash) > 0);
-
+    if (node->type == Dir) {
+        if(hashtable_get_size(node->payload.dirhash) > 0) {
+            /* Recursion disabled? Dir is not empty! */
+            if (!recursive) return false;
+            /* Iterate through the table */
+            do {
+                size_t state = 0;
+                node_t *child = hashtable_iterate(node->payload.dirhash, &state);
+                while (child) {
+                    fs_delete(child, true);
+                    child = hashtable_iterate(node->payload.dirhash, &state);
+                }
+            } while (hashtable_get_size(node->payload.dirhash) > 0);
+        }
         hashtable_destroy(node->payload.dirhash);
     } else {
         free(node->payload.content);
