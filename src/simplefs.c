@@ -37,6 +37,8 @@ char *fs_get_path(node_t *node, size_t len) {
         strcat(path, node->name);
     } else {
         path = calloc_or_die(len + 1, sizeof(char));
+        if (len == 0)
+            strcat(path, "/");
     }
     return path;
 }
