@@ -23,21 +23,6 @@
 #include "simplefs.h"
 
 /****************************************************************************
- * Private Functions
- ****************************************************************************/
-/**
- * Free file node and delete directory entry
- */
-void fs__free(node_t *node) {
-    /* Free: payload, name, node struct
-     * Remove: entry in parent hashtable */
-    free(node->payload.content);
-    hashtable_remove(node->parent->payload.dirhash, node->name);
-    free(node->name);
-    free(node);
-}
-
-/****************************************************************************
  * Public Functions
  ****************************************************************************/
 /**
@@ -147,8 +132,13 @@ bool fs_delete(node_t *node, bool recursive) {
             }
         } while(hashtable_get_size(node->payload.dirhash) > 0);
 
+        hashtable_destroy(node->payload.dirhash);
+    } else {
+        free(node->payload.content);
     }
-    fs__free(node);
+    hashtable_remove(node->parent->payload.dirhash, node->name);
+    free(node->name);
+    free(node);
     return true;
 }
 
