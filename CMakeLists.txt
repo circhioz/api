@@ -7,8 +7,8 @@ if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 endif()
 
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_FLAGS "-std=c99 -Wall -Wextra")
-set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_C_FLAGS "-std=c99")
+set(CMAKE_C_FLAGS_DEBUG "-g -Wall -Wextra")
 set(CMAKE_C_FLAGS_RELEASE "-O2")
 
 add_subdirectory(src)
