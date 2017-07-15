@@ -50,7 +50,15 @@
  * Private Functions
  ****************************************************************************/
 /**
- * Find resource by its path string
+ * Find resource by its path string.
+ * Function behaves differently based on new_name value:
+ * if NULL function will enter path token by token and return the requested
+ * resource, if a valid pointer is given it will store a pointer to a string
+ * containing the name of the file to be created.
+ * e.g. node=root, path="/dir1", new_name=NULL (dir1 exists)
+ *          -> return dir1 pointer
+ *      node=root, path="/dir/file, new_name=valid pointer (dir exists, file doesn't)
+ *          -> pointer=dir pointer new_name="file"
  */
 node_t *enter_path(node_t *node, char *path, char **new_name) {
     node_t *tmp = NULL;
@@ -145,13 +153,16 @@ void do_delete(node_t *node, bool recursive) {
 void do_find(node_t *root) {
     char *token = strtok(NULL, TOK_SPACE);
     size_t nres = 0;
+    /* Find resources with the given name */
     node_t **res = fs_find_r(root, token, &nres, NULL);
     if(nres > 0) {
+        /* Create an array of strings containig full paths */
         char **paths = malloc_or_die(nres * sizeof(char *));
         for (size_t i = 0; i < nres; i++) {
             paths[i] = fs_get_path(res[i], 0);
         }
         free(res);
+        /* Sort them with quicksort */
         qsort(paths, nres, sizeof(char *), compare_str);
         for(size_t i = 0; i < nres; i++) {
             printf(RES_FIND(paths[i]));
