@@ -1,18 +1,17 @@
 /*
- * This file is part of SimpleFS, an API course project
- * Copyright (c) 2017 Francesco Circhetta.
- * 
- * This program is free software: you can redistribute it and/or modify  
- * it under the terms of the GNU General Public License as published by  
- * the Free Software Foundation, version 3.
+ * Copyright 2017 Francesco Circhetta
  *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
- * General Public License for more details.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * You should have received a copy of the GNU General Public License 
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /**
@@ -50,7 +49,15 @@
  * Private Functions
  ****************************************************************************/
 /**
- * Find resource by its path string
+ * Find resource by its path string.
+ * Function behaves differently based on new_name value:
+ * if NULL function will enter path token by token and return the requested
+ * resource, if a valid pointer is given it will store a pointer to a string
+ * containing the name of the file to be created.
+ * e.g. node=root, path="/dir1", new_name=NULL (dir1 exists)
+ *          -> return dir1 pointer
+ *      node=root, path="/dir/file, new_name=valid pointer (dir exists, file doesn't)
+ *          -> pointer=dir pointer new_name="file"
  */
 node_t *enter_path(node_t *node, char *path, char **new_name) {
     node_t *tmp = NULL;
@@ -145,13 +152,16 @@ void do_delete(node_t *node, bool recursive) {
 void do_find(node_t *root) {
     char *token = strtok(NULL, TOK_SPACE);
     size_t nres = 0;
+    /* Find resources with the given name */
     node_t **res = fs_find_r(root, token, &nres, NULL);
     if(nres > 0) {
+        /* Create an array of strings containig full paths */
         char **paths = malloc_or_die(nres * sizeof(char *));
         for (size_t i = 0; i < nres; i++) {
             paths[i] = fs_get_path(res[i], 0);
         }
         free(res);
+        /* Sort them with quicksort */
         qsort(paths, nres, sizeof(char *), compare_str);
         for(size_t i = 0; i < nres; i++) {
             printf(RES_FIND(paths[i]));
