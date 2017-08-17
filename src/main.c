@@ -182,9 +182,15 @@ int main() {
     /* Command parser */
     char *line = NULL;
     size_t len = 0;
+#ifdef DEBUG
+    unsigned long count = 0;
+#endif
     while (my_getline(&line, &len) >= 0) {
         char *token = strtok(line, TOK_SPACE);
         if (token) {
+#ifdef DEBUG
+            printf("%lu %s ", count, token);
+#endif
             if (strcmp(token, "create") == 0) {
                 do_create(root, File);
             } else if (strcmp(token, "create_dir") == 0) {
@@ -202,6 +208,9 @@ int main() {
             } else if (strcmp(token, "exit") == 0) {
                 break;
             }
+#ifdef DEBUG
+            count++;
+#endif
         }
     }
     free(line);

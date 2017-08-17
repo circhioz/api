@@ -8,7 +8,7 @@ endif()
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_FLAGS "-std=c99")
-set(CMAKE_C_FLAGS_DEBUG "-g -Wall -Wextra")
+set(CMAKE_C_FLAGS_DEBUG "-g -Wall -Wextra -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "-O2")
 
 add_subdirectory(src)
