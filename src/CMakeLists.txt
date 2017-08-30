@@ -1,10 +1,10 @@
-add_library(utils STATIC utils.c utils.h)
+add_library(utils SHARED utils.c utils.h)
 
-add_library(hashtable STATIC hashtable.c hashtable.h)
-add_dependencies(hashtable utils)
+add_library(hashtable SHARED hashtable.c hashtable.h)
+target_link_libraries(hashtable utils)
 
-add_library(simplefs STATIC simplefs.c simplefs.h)
-add_dependencies(simplefs hashtable utils)
+add_library(simplefs SHARED simplefs.c simplefs.h)
+target_link_libraries(simplefs hashtable utils)
 
 add_executable(project main.c)
-target_link_libraries(project simplefs hashtable utils)
+target_link_libraries(project simplefs utils)
