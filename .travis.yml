@@ -1,9 +1,13 @@
 os: linux
 language: c
-compiler: gcc
+compiler:
+  - clang
+  - gcc
 install: false
 script:
   - mkdir build && cd build
-  - cmake ..
+  - cmake -DCMAKE_BUILD_TYPE=Coverage ..
   - make all && make test
   - ../test/test_cases.sh
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
